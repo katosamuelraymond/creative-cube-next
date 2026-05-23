@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - staging
+
 permissions:
   contents: read
   packages: write
@@ -23,22 +25,48 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set image tag
+        id: vars
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+          else
+            echo "tag=staging" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.tag }}
 
-      - name: Deploy to VPS
+      - name: Deploy to production
+        if: github.ref_name == 'main'
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/projects/next-app
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            cd /opt/projects/next-app
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
+
+      - name: Deploy to staging
+        if: github.ref_name == 'staging'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            cd /opt/projects/next-app-staging
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f
