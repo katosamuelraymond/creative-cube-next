@@ -106,7 +106,7 @@ jobs:
             Author: ${{ github.actor }}
 
             View run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          to: ${{ secrets.MAIL_USERNAME }}
+          to: katosamuelraymondmarvinhosborn@gmail.com
           from: GitHub Actions
 
       - name: Send failure email
@@ -126,5 +126,5 @@ jobs:
             Author: ${{ github.actor }}
 
             View run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          to: ${{ secrets.MAIL_USERNAME }}
+          to: katosamuelraymondmarvinhosborn@gmail.com
           from: GitHub Actions
