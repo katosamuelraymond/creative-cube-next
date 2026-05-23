@@ -55,6 +55,17 @@ jobs:
             cd /opt/projects/next-app
             docker compose pull
             docker compose up -d --remove-orphans
+            echo "Waiting for health check..."
+            sleep 35
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' next-app-app-1)
+            if [ "$STATUS" != "healthy" ]; then
+              echo "Health check failed — rolling back"
+              docker compose down
+              docker tag ghcr.io/katosamuelraymond/creative-cube-next:previous ghcr.io/katosamuelraymond/creative-cube-next:latest 2>/dev/null || true
+              docker compose up -d
+              exit 1
+            fi
+            echo "Deploy successful"
             docker image prune -f
 
       - name: Deploy to staging
