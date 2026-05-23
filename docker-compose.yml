@@ -1,0 +1,18 @@
+services:
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY}:latest
+    restart: always
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.next-app.rule=Host(`next.conquerer.org`)"
+      - "traefik.http.routers.next-app.entrypoints=websecure"
+      - "traefik.http.routers.next-app.tls.certresolver=le"
+      - "traefik.http.services.next-app.loadbalancer.server.port=3000"
+    networks:
+      - traefik_public
+
+networks:
+  traefik_public:
+    external: true
