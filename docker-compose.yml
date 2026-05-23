@@ -1,9 +1,32 @@
 services:
+  # ─── Local PostgreSQL (development only) ────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: creative_cube
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Production app (Docker Hub / GHCR image) ────────────────────────────────
   app:
     image: ghcr.io/katosamuelraymond/creative-cube-next:latest
     restart: always
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/creative_cube
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 30s
@@ -20,6 +43,9 @@ services:
       - "traefik.http.services.next-app.loadbalancer.healthcheck.interval=10s"
     networks:
       - traefik_public
+
+volumes:
+  postgres_data:
 
 networks:
   traefik_public:
