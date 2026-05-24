@@ -54,12 +54,12 @@ export default async function ProductsPage({
   });
 
   // Use DB products if available, or mock data for demo
-  const displayProducts = dbProducts.length > 0 
+  const displayProducts = dbProducts.length > 0
     ? dbProducts.map(p => ({
-        ...p,
-        price: p.price.toString(),
-        image: p.image?.startsWith('http') ? p.image : mockProducts[0].image
-      }))
+      ...p,
+      price: p.price.toString(),
+      image: p.images?.[0]?.startsWith('http') ? p.images?.[0] : mockProducts[0].image
+    }))
     : mockProducts;
 
   return (
@@ -155,10 +155,10 @@ export default async function ProductsPage({
             {displayProducts.map((p) => (
               <div key={p.id} className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-premium hover:shadow-hover-premium transition-all group relative">
                 <Link href={`/products/${p.id}`} className="relative aspect-[4/5] block overflow-hidden">
-                  <img alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src={p.image} />
+                  <img alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src={p.images?.[0]} />
                   <div className="absolute top-4 left-4 bg-primary-container text-white px-3 py-1 rounded-full font-bold text-[10px] shadow-sm uppercase tracking-widest">20% OFF</div>
                 </Link>
-                
+
                 {/* Favorite button moved outside Link to fix interaction issues */}
                 <button className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-primary hover:text-white">
                   <span className="material-symbols-outlined">favorite</span>

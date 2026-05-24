@@ -12,10 +12,10 @@ interface Product {
   description?: string;
 }
 
-export default function ProductDetailsClient({ 
-  product, 
-  relatedProducts 
-}: { 
+export default function ProductDetailsClient({
+  product,
+  relatedProducts
+}: {
   product: Product;
   relatedProducts: Product[];
 }) {
@@ -24,8 +24,8 @@ export default function ProductDetailsClient({
   const [activeAccordion, setActiveAccordion] = useState<string | null>("dimensions");
   const [selectedColor, setSelectedColor] = useState("Burnt Orange");
 
-  const categoryName = typeof product.category === 'string' 
-    ? product.category 
+  const categoryName = typeof product.category === 'string'
+    ? product.category
     : product.category?.name;
 
   const thumbnails = [
@@ -61,12 +61,11 @@ export default function ProductDetailsClient({
           {/* Thumbnails */}
           <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto no-scrollbar md:w-24">
             {thumbnails.map((img, idx) => (
-              <div 
+              <div
                 key={idx}
                 onClick={() => setCurrentImage(img)}
-                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
-                  currentImage === img ? "border-primary" : "border-outline-variant hover:border-primary"
-                }`}
+                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${currentImage === img ? "border-primary" : "border-outline-variant hover:border-primary"
+                  }`}
               >
                 <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
               </div>
@@ -75,9 +74,9 @@ export default function ProductDetailsClient({
 
           {/* Hero Image */}
           <div className="flex-1 rounded-xl overflow-hidden bg-surface-container shadow-sm group relative">
-            <img 
-              src={currentImage} 
-              alt={product.name} 
+            <img
+              src={currentImage}
+              alt={product.name}
               className="w-full h-[600px] object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <button className="absolute top-4 right-4 bg-surface-container-lowest/80 backdrop-blur-md p-3 rounded-full hover:bg-primary transition-all duration-300 group/fav">
@@ -116,12 +115,11 @@ export default function ProductDetailsClient({
               </p>
               <div className="flex gap-3">
                 {colors.map(color => (
-                  <button 
+                  <button
                     key={color.name}
                     onClick={() => setSelectedColor(color.name)}
-                    className={`w-10 h-10 rounded-full border-2 p-0.5 bg-surface transition-all active:scale-95 ${
-                      selectedColor === color.name ? "border-primary" : "border-outline-variant"
-                    }`}
+                    className={`w-10 h-10 rounded-full border-2 p-0.5 bg-surface transition-all active:scale-95 ${selectedColor === color.name ? "border-primary" : "border-outline-variant"
+                      }`}
                   >
                     <div className="w-full h-full rounded-full" style={{ backgroundColor: color.hex }}></div>
                   </button>
@@ -133,19 +131,19 @@ export default function ProductDetailsClient({
             <div>
               <p className="font-label-md text-label-md text-on-surface mb-3 uppercase tracking-wider font-bold">QUANTITY</p>
               <div className="flex items-center border border-outline-variant rounded-lg w-fit px-2 py-1 bg-surface-container-lowest">
-                <button 
+                <button
                   className="p-2 hover:text-primary transition-colors"
                   onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
                 >
                   <span className="material-symbols-outlined">remove</span>
                 </button>
-                <input 
-                  className="w-12 text-center border-none focus:ring-0 bg-transparent font-body-md" 
-                  type="number" 
+                <input
+                  className="w-12 text-center border-none focus:ring-0 bg-transparent font-body-md"
+                  type="number"
                   value={quantity}
                   readOnly
                 />
-                <button 
+                <button
                   className="p-2 hover:text-primary transition-colors"
                   onClick={() => setQuantity(prev => prev + 1)}
                 >
@@ -168,23 +166,29 @@ export default function ProductDetailsClient({
           {/* Specs Accordion */}
           <div className="flex flex-col border-t border-outline-variant mt-4">
             {[
-              { id: "dimensions", title: "DIMENSIONS", content: (
-                <div className="pb-4 text-body-sm text-secondary space-y-2">
-                  <div className="flex justify-between"><span>Width:</span> <span className="text-on-surface">104 inches</span></div>
-                  <div className="flex justify-between"><span>Depth:</span> <span className="text-on-surface">36 inches</span></div>
-                  <div className="flex justify-between"><span>Height:</span> <span className="text-on-surface">32 inches</span></div>
-                  <div className="flex justify-between"><span>Seat Height:</span> <span className="text-on-surface">18 inches</span></div>
-                </div>
-              )},
-              { id: "materials", title: "MATERIALS", content: (
-                <p className="pb-4 text-body-sm text-secondary">Premium high-pile velvet upholstery, solid kiln-dried oak frame, high-density foam cushions with down toppers for maximum comfort. Modular connectors hidden under the frame.</p>
-              )},
-              { id: "shipping", title: "SHIPPING INFO", content: (
-                <p className="pb-4 text-body-sm text-secondary">Standard delivery within 5-10 business days. White-glove delivery and assembly service available at checkout for an additional $99. 30-day trial period with free returns.</p>
-              )},
+              {
+                id: "dimensions", title: "DIMENSIONS", content: (
+                  <div className="pb-4 text-body-sm text-secondary space-y-2">
+                    <div className="flex justify-between"><span>Width:</span> <span className="text-on-surface">104 inches</span></div>
+                    <div className="flex justify-between"><span>Depth:</span> <span className="text-on-surface">36 inches</span></div>
+                    <div className="flex justify-between"><span>Height:</span> <span className="text-on-surface">32 inches</span></div>
+                    <div className="flex justify-between"><span>Seat Height:</span> <span className="text-on-surface">18 inches</span></div>
+                  </div>
+                )
+              },
+              {
+                id: "materials", title: "MATERIALS", content: (
+                  <p className="pb-4 text-body-sm text-secondary">Premium high-pile velvet upholstery, solid kiln-dried oak frame, high-density foam cushions with down toppers for maximum comfort. Modular connectors hidden under the frame.</p>
+                )
+              },
+              {
+                id: "shipping", title: "SHIPPING INFO", content: (
+                  <p className="pb-4 text-body-sm text-secondary">Standard delivery within 5-10 business days. White-glove delivery and assembly service available at checkout for an additional $99. 30-day trial period with free returns.</p>
+                )
+              },
             ].map(item => (
               <div key={item.id} className="border-b border-outline-variant">
-                <button 
+                <button
                   className="w-full py-4 flex justify-between items-center group"
                   onClick={() => setActiveAccordion(activeAccordion === item.id ? null : item.id)}
                 >
@@ -219,7 +223,7 @@ export default function ProductDetailsClient({
           {relatedProducts.map(rp => (
             <Link key={rp.id} href={`/products/${rp.id}`} className="group cursor-pointer animate-scale-in">
               <div className="aspect-square rounded-[32px] overflow-hidden bg-surface-container relative mb-5 shadow-premium group-hover:shadow-hover-premium transition-all duration-500">
-                <img src={rp.image} alt={rp.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img src={rp.images?.[0]} alt={rp.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
                 <button className="absolute bottom-4 right-4 bg-white text-primary w-12 h-12 flex items-center justify-center rounded-2xl shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white">
                   <span className="material-symbols-outlined">add_shopping_cart</span>

@@ -125,7 +125,7 @@ export default async function Home() {
     ? dbFeatured.map((p, i) => ({
       ...p,
       price: p.price.toString(),
-      image: p.images?.[0]?.startsWith('http') ? p.images[0] : mockBestSellers[i].image
+      image: p.images?.[0]s?.[0]?.startsWith('http') ? p.images?.[0]s[0]: mockBestSellers[i].image
     }))
     : mockBestSellers;
 
@@ -133,7 +133,7 @@ export default async function Home() {
     ? dbRecent.map((p, i) => ({
       ...p,
       price: p.price.toString(),
-      image: p.images?.[0]?.startsWith('http') ? p.images[0] : mockNewArrivals[i].image
+      image: p.images?.[0]s?.[0]?.startsWith('http') ? p.images?.[0]s[0]: mockNewArrivals[i].image
     }))
     : mockNewArrivals;
 

@@ -80,13 +80,13 @@ const mockProducts: ProductData[] = [
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  
+
   // Try real database first
   const dbProduct = await getProductById(id);
-  
+
   // Prepare product data (with fallback for demo)
   let product: ProductData | null = null;
-  
+
   if (dbProduct) {
     const category = (dbProduct as { category?: { name: string } }).category;
     product = {
@@ -95,7 +95,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       category: category?.name || "Product",
       price: dbProduct.price.toString(),
       // Ensure image is valid or use fallback
-      image: dbProduct.image?.startsWith('http') ? dbProduct.image : mockProducts[0].image
+      image: dbProduct.images?.[0]?.startsWith('http') ? dbProduct.images?.[0] : mockProducts[0].image
     };
   } else {
     // Check mock data for demo
@@ -108,28 +108,28 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   // Get related products (expanded to 8 as requested)
   const dbRelated = await getRelatedProducts(
-    dbProduct?.categoryId || "default", 
-    product.id, 
+    dbProduct?.categoryId || "default",
+    product.id,
     8
   );
 
-  const relatedProducts: ProductData[] = dbRelated.length > 0 
+  const relatedProducts: ProductData[] = dbRelated.length > 0
     ? dbRelated.map(p => {
-        const cat = (p as { category?: { name: string } }).category;
-        return {
-          id: p.id,
-          name: p.name,
-          category: cat?.name || "Product",
-          price: p.price.toString(),
-          image: p.image?.startsWith('http') ? p.image : mockProducts[1].image
-        };
-      })
+      const cat = (p as { category?: { name: string } }).category;
+      return {
+        id: p.id,
+        name: p.name,
+        category: cat?.name || "Product",
+        price: p.price.toString(),
+        image: p.images?.[0]?.startsWith('http') ? p.images?.[0] : mockProducts[1].image
+      };
+    })
     : mockProducts.filter(p => p.id !== product?.id).slice(0, 8);
 
   return (
-    <ProductDetailsClient 
-      product={product} 
-      relatedProducts={relatedProducts} 
+    <ProductDetailsClient
+      product={product}
+      relatedProducts={relatedProducts}
     />
   );
 }
