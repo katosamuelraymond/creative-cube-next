@@ -77,9 +77,16 @@ jobs:
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /opt/projects/next-app-staging
             docker compose pull
+            docker compose up -d db
+            sleep 10
+            docker run --rm --network next-app-staging_internal \
+              -e DATABASE_URL=postgresql://nextuser:nextpass@next-app-staging-db-1:5432/nextdb \
+              --entrypoint node \
+              ghcr.io/katosamuelraymond/creative-cube-next:staging \
+              node_modules/prisma/build/index.js migrate deploy --schema=prisma/schema.prisma || true
             docker compose up -d --remove-orphans
             echo "Waiting for health check..."
-            sleep 35
+            sleep 60
             STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q app))
             if [ "$STATUS" != "healthy" ]; then
               echo "Health check failed — rolling back"
