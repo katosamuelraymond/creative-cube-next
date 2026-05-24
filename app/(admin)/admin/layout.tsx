@@ -2,13 +2,15 @@ import Link from "next/link";
 import { decrypt } from "@/lib/session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { logout } from "@/app/actions/auth";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Security: Check if user is Admin
   const cookieStore = await cookies();
   const session = await decrypt(cookieStore.get("session")?.value);
 
@@ -17,94 +19,84 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* SideNavBar - Fixed for desktop */}
-      <aside className="hidden md:flex flex-col h-screen w-64 bg-surface-container-low border-r border-outline-variant fixed left-0 top-0 z-50">
-        <div className="flex flex-col h-full p-4 gap-2">
-          {/* Brand Anchor */}
-          <div className="px-4 py-8 mb-4">
-            <Link href="/" className="font-headline-md text-headline-md font-bold text-primary block">
-              Creative Cube
-            </Link>
-            <p className="font-body-sm text-xs font-bold text-secondary uppercase tracking-widest mt-1 opacity-60">
-              Management
-            </p>
-          </div>
+    <div className="flex min-h-screen bg-surface">
+      {/* Sidebar — fixed, scrolls independently */}
+      <AdminSidebar />
 
-          {/* Navigation Links */}
-          <nav className="flex-1 space-y-1">
-            <Link 
-              href="/admin" 
-              className="flex items-center gap-3 px-4 py-3 bg-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all scale-[0.98]"
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              <span className="font-label-md text-sm uppercase tracking-wider">Dashboard</span>
-            </Link>
-            
-            {[
-              { label: "Orders", icon: "shopping_bag", href: "/admin/orders" },
-              { label: "Products", icon: "inventory_2", href: "/admin/products" },
-              { label: "Categories", icon: "category", href: "/admin/categories" },
-              { label: "Customers", icon: "group", href: "/admin/customers" },
-              { label: "Analytics", icon: "monitoring", href: "/admin/analytics" },
-            ].map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-highest hover:text-primary rounded-xl transition-all font-bold uppercase tracking-widest text-[10px]"
-              >
-                <span className="material-symbols-outlined text-xl">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            ))}
-          </nav>
-
-          {/* Footer of Sidebar */}
-          <div className="mt-auto pt-4 border-t border-outline-variant/10">
-            <Link
-              href="/admin/settings"
-              className="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-highest rounded-xl transition-all font-bold uppercase tracking-widest text-[10px]"
-            >
-              <span className="material-symbols-outlined text-xl">settings</span>
-              <span>Settings</span>
-            </Link>
-            
-            <div className="flex items-center gap-3 px-4 py-6 mt-2 bg-surface-container/50 rounded-2xl border border-outline-variant/10">
-              <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-md">
-                A
-              </div>
-              <div className="flex flex-col">
-                <span className="font-label-md text-xs font-bold text-on-surface">Alex Rivera</span>
-                <span className="text-[10px] text-secondary font-bold uppercase opacity-60 tracking-tighter">Super Admin</span>
+      {/* Main content area */}
+      <div className="flex-1 md:ml-[272px] flex flex-col min-h-screen">
+        {/* Top bar */}
+        <header className="sticky top-0 z-40 bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/10 px-6 md:px-10 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-container transition-all text-secondary">
+                <span className="material-symbols-outlined">menu</span>
+              </button>
+              <div className="hidden md:flex items-center bg-surface-container border border-outline-variant/20 rounded-2xl px-4 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all w-80">
+                <span className="material-symbols-outlined text-secondary/40 mr-3">search</span>
+                <input
+                  className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none placeholder:text-secondary/40"
+                  placeholder="Search orders, products, customers..."
+                  type="text"
+                />
               </div>
             </div>
-          </div>
-        </div>
-      </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 md:ml-64 flex flex-col">
-        {children}
+            <div className="flex items-center gap-3">
+              {/* Notifications */}
+              <button className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-container transition-all text-secondary">
+                <span className="material-symbols-outlined text-xl">notifications</span>
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface-container-lowest" />
+              </button>
+
+              <ThemeToggle />
+
+              <div className="w-px h-8 bg-outline-variant/20 mx-1" />
+
+              {/* User */}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm shadow-md">
+                  A
+                </div>
+                <div className="hidden sm:flex flex-col">
+                  <span className="text-sm font-bold text-on-surface leading-tight">Admin</span>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-widest opacity-60">Super Admin</span>
+                </div>
+              </div>
+
+              {/* Logout */}
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="w-10 h-10 flex items-center justify-center hover:bg-error/10 hover:text-error rounded-xl transition-all text-secondary"
+                  title="Sign out"
+                >
+                  <span className="material-symbols-outlined text-xl">logout</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content — scrolls */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-10 pb-24 md:pb-10">
+          {children}
+        </main>
       </div>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/20 flex justify-around py-4 z-50 shadow-2xl">
-        <Link href="/admin" className="flex flex-col items-center gap-1 text-primary">
-          <span className="material-symbols-outlined">dashboard</span>
-          <span className="text-[10px] font-bold uppercase">Admin</span>
-        </Link>
-        <Link href="/admin/orders" className="flex flex-col items-center gap-1 text-secondary">
-          <span className="material-symbols-outlined">shopping_bag</span>
-          <span className="text-[10px] font-bold uppercase">Orders</span>
-        </Link>
-        <Link href="/admin/products" className="flex flex-col items-center gap-1 text-secondary">
-          <span className="material-symbols-outlined">inventory_2</span>
-          <span className="text-[10px] font-bold uppercase">Stock</span>
-        </Link>
-        <Link href="/admin/customers" className="flex flex-col items-center gap-1 text-secondary">
-          <span className="material-symbols-outlined">group</span>
-          <span className="text-[10px] font-bold uppercase">Users</span>
-        </Link>
+      {/* Mobile bottom nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest border-t border-outline-variant/20 flex justify-around py-3 z-50 shadow-2xl">
+        {[
+          { label: "Dashboard", icon: "dashboard", href: "/admin" },
+          { label: "Orders", icon: "shopping_bag", href: "/admin/orders" },
+          { label: "Products", icon: "inventory_2", href: "/admin/products" },
+          { label: "Users", icon: "group", href: "/admin/customers" },
+        ].map((item) => (
+          <Link key={item.label} href={item.href} className="flex flex-col items-center gap-1 text-secondary hover:text-primary transition-colors">
+            <span className="material-symbols-outlined">{item.icon}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+          </Link>
+        ))}
       </div>
     </div>
   );

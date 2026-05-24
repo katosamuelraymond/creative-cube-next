@@ -2,6 +2,7 @@ import Link from "next/link";
 import { decrypt } from "@/lib/session";
 import { cookies } from "next/headers";
 import { logout } from "@/app/actions/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function Navbar() {
   // Read session on the server
@@ -60,6 +61,8 @@ export default async function Navbar() {
                 type="text"
               />
             </div>
+
+              <ThemeToggle />
 
             <div className="flex items-center gap-1.5 bg-surface-container-high/50 p-1.5 rounded-full border border-outline-variant/20">
               {session ? (

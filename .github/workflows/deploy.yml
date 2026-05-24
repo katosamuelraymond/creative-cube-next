@@ -30,10 +30,8 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" == "main" ]; then
             echo "tag=latest" >> $GITHUB_OUTPUT
-            echo "env=production" >> $GITHUB_OUTPUT
           else
             echo "tag=staging" >> $GITHUB_OUTPUT
-            echo "env=staging" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push Docker image
@@ -54,9 +52,16 @@ jobs:
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /opt/projects/next-app
             docker compose pull
+            docker compose up -d db
+            sleep 15
+            docker run --rm --network next-app_internal \
+              -e DATABASE_URL=postgresql://nextuser:nextpass@next-app-db-1:5432/nextdb \
+              --entrypoint node \
+              ghcr.io/katosamuelraymond/creative-cube-next:latest \
+              node_modules/prisma/build/index.js migrate deploy --schema=prisma/schema.prisma || true
             docker compose up -d --remove-orphans
             echo "Waiting for health check..."
-            sleep 35
+            sleep 60
             STATUS=$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q app))
             if [ "$STATUS" != "healthy" ]; then
               echo "Health check failed — rolling back"
@@ -78,7 +83,7 @@ jobs:
             cd /opt/projects/next-app-staging
             docker compose pull
             docker compose up -d db
-            sleep 10
+            sleep 15
             docker run --rm --network next-app-staging_internal \
               -e DATABASE_URL=postgresql://nextuser:nextpass@next-app-staging-db-1:5432/nextdb \
               --entrypoint node \
