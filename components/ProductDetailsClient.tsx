@@ -223,7 +223,7 @@ export default function ProductDetailsClient({
           {relatedProducts.map(rp => (
             <Link key={rp.id} href={`/products/${rp.id}`} className="group cursor-pointer animate-scale-in">
               <div className="aspect-square rounded-[32px] overflow-hidden bg-surface-container relative mb-5 shadow-premium group-hover:shadow-hover-premium transition-all duration-500">
-                <img src={rp.images?.[0]} alt={rp.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img src={rp.image} alt={rp.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
                 <button className="absolute bottom-4 right-4 bg-white text-primary w-12 h-12 flex items-center justify-center rounded-2xl shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white">
                   <span className="material-symbols-outlined">add_shopping_cart</span>
