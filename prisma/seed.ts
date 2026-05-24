@@ -1,8 +1,23 @@
-import { PrismaClient } from "@/app/generated/prisma";
-import { slugify } from "../lib/utils";
+import { config } from "dotenv";
+import { resolve } from "path";
+config({ path: resolve(__dirname, "../.env") });
+import { PrismaClient } from "../app/generated/prisma";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Inline slugify — avoids @/ alias issue when running via tsx directly
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+
+const adapter = new PrismaPg({ connectionString: process.env["DATABASE_URL"]! });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("🌱 Seeding Creative Cube database...");
