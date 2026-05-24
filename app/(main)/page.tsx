@@ -121,20 +121,20 @@ export default async function Home() {
   const { products: dbRecent } = await getProducts({ limit: 8 });
 
   // Merge logic: prefer DB products if they have valid images, otherwise use mock
-  const bestSellers = dbFeatured.length >= 5 
+  const bestSellers = dbFeatured.length >= 5
     ? dbFeatured.map((p, i) => ({
-        ...p,
-        price: p.price.toString(),
-        image: p.image?.startsWith('http') ? p.image : mockBestSellers[i].image
-      }))
+      ...p,
+      price: p.price.toString(),
+      image: p.images?.[0]?.startsWith('http') ? p.images[0] : mockBestSellers[i].image
+    }))
     : mockBestSellers;
 
   const newArrivals = dbRecent.length >= 8
     ? dbRecent.map((p, i) => ({
-        ...p,
-        price: p.price.toString(),
-        image: p.image?.startsWith('http') ? p.image : mockNewArrivals[i].image
-      }))
+      ...p,
+      price: p.price.toString(),
+      image: p.images?.[0]?.startsWith('http') ? p.images[0] : mockNewArrivals[i].image
+    }))
     : mockNewArrivals;
 
   return (
@@ -179,19 +179,19 @@ export default async function Home() {
             View Collection <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
           </Link>
         </div>
-        
+
         <div className="max-w-container-max mx-auto px-margin-desktop">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-auto md:min-h-[800px]">
             {/* Big Featured Item */}
             <div className="md:col-span-7 h-full">
               <ProductCard product={bestSellers[0]} isFullHeight />
             </div>
-            
+
             {/* 4 item cluster */}
             <div className="md:col-span-5 grid grid-cols-2 grid-rows-2 gap-4 h-full">
               {bestSellers.slice(1, 5).map((product) => (
                 <div key={product.id} className="h-full">
-                   <ProductCard product={product} isCompact />
+                  <ProductCard product={product} isCompact />
                 </div>
               ))}
             </div>
@@ -212,10 +212,10 @@ export default async function Home() {
             ))}
           </div>
           <div className="mt-16 text-center">
-             <Link href="/products" className="inline-flex items-center gap-3 border-2 border-primary text-primary px-10 py-4 rounded-2xl font-bold hover:bg-primary hover:text-white transition-all">
-                View All Products
-                <span className="material-symbols-outlined">expand_more</span>
-             </Link>
+            <Link href="/products" className="inline-flex items-center gap-3 border-2 border-primary text-primary px-10 py-4 rounded-2xl font-bold hover:bg-primary hover:text-white transition-all">
+              View All Products
+              <span className="material-symbols-outlined">expand_more</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -301,8 +301,8 @@ export default async function Home() {
 }
 
 function ProductCard({ product, isFullHeight, isCompact }: { product: Product, isFullHeight?: boolean, isCompact?: boolean }) {
-  const categoryName = typeof product.category === 'string' 
-    ? product.category 
+  const categoryName = typeof product.category === 'string'
+    ? product.category
     : product.category?.name;
 
   const priceString = product.price?.toString() || "0";
@@ -316,22 +316,22 @@ function ProductCard({ product, isFullHeight, isCompact }: { product: Product, i
           src={product.image}
         />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
-        
+
         {/* Detail Overlay for tight masonry grid items */}
         <div className={`absolute inset-0 flex flex-col justify-end p-6 transition-opacity duration-300 bg-gradient-to-t from-black/80 via-transparent to-transparent ${isFullHeight || isCompact ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 md:hidden'}`}>
-           <div className="text-white">
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-80">{categoryName}</p>
-              <h3 className={`${isFullHeight ? 'text-2xl' : 'text-sm'} font-bold mb-1`}>{product.name}</h3>
-              <p className={`${isFullHeight ? 'text-xl' : 'text-sm'} font-bold text-primary-container`}>${priceString}</p>
-           </div>
+          <div className="text-white">
+            <p className="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-80">{categoryName}</p>
+            <h3 className={`${isFullHeight ? 'text-2xl' : 'text-sm'} font-bold mb-1`}>{product.name}</h3>
+            <p className={`${isFullHeight ? 'text-xl' : 'text-sm'} font-bold text-primary-container`}>${priceString}</p>
+          </div>
         </div>
       </Link>
-      
+
       {/* Floating Add to Cart Button (Outside Link to avoid nested button issues) */}
       <button className="absolute top-4 right-4 bg-white text-primary w-12 h-12 flex items-center justify-center rounded-2xl shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white active:scale-90 z-20">
         <span className="material-symbols-outlined">add_shopping_cart</span>
       </button>
-      
+
       {!isFullHeight && !isCompact && (
         <div className="px-2 mt-2">
           <p className="font-body-sm text-body-sm text-secondary mb-1 uppercase tracking-widest text-[10px] font-bold">
