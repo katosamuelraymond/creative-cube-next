@@ -29,7 +29,7 @@ COPY --from=builder /app/node_modules/dotenv ./node_modules/dotenv
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 COPY docker/start.sh ./start.sh
-RUN chmod +x start.sh
+RUN sed -i 's/\r//' start.sh && chmod +x start.sh
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
