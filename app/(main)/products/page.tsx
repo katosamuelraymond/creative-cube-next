@@ -155,7 +155,7 @@ export default async function ProductsPage({
             {displayProducts.map((p) => (
               <div key={p.id} className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-premium hover:shadow-hover-premium transition-all group relative">
                 <Link href={`/products/${p.id}`} className="relative aspect-[4/5] block overflow-hidden">
-                  <img alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src={p.images?.[0]} />
+                  <img alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src={p.image} />
                   <div className="absolute top-4 left-4 bg-primary-container text-white px-3 py-1 rounded-full font-bold text-[10px] shadow-sm uppercase tracking-widest">20% OFF</div>
                 </Link>
 
