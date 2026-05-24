@@ -96,6 +96,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       price: dbProduct.price.toString(),
       // Ensure image is valid or use fallback
       image: dbProduct.images?.[0]?.startsWith('http') ? dbProduct.images?.[0] : mockProducts[0].image
+
     };
   } else {
     // Check mock data for demo
