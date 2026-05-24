@@ -30,6 +30,7 @@ export async function getOrderById(id: string) {
           product: { select: { id: true, name: true, images: true, slug: true } },
         },
       },
+      payment: true,
     },
   });
 }
@@ -42,6 +43,7 @@ export async function getAllOrders(page = 1, limit = 20) {
       include: {
         user: { select: { name: true, email: true } },
         items: { select: { quantity: true } },
+        payment: { select: { status: true, method: true } },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
@@ -65,11 +67,12 @@ export type CartItemForCheckout = {
 export async function createOrder(
   userId: string,
   address: CheckoutInput,
-  items: CartItemForCheckout[]
+  items: CartItemForCheckout[],
+  paymentMethod: string = "COD"
 ) {
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  // Create order + items in a transaction, decrement stock atomically
+  // Create order + items + payment in a transaction, decrement stock atomically
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.create({
       data: {
@@ -87,8 +90,15 @@ export async function createOrder(
             price: item.price,
           })),
         },
+        payment: {
+          create: {
+            amount: total,
+            method: paymentMethod,
+            status: paymentMethod === "COD" ? "PENDING" : "COMPLETED", // Simplified for now
+          },
+        },
       },
-      include: { items: true },
+      include: { items: true, payment: true },
     });
 
     // Decrement stock for each item

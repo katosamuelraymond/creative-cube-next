@@ -30,7 +30,22 @@ export const ProductSchema = z.object({
   featured: z.boolean().optional().default(false),
 });
 
+export const ReviewSchema = z.object({
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().min(10, { message: "Comment must be at least 10 characters." }).optional(),
+  productId: z.string().min(1),
+});
+
 // ─── Order schemas ────────────────────────────────────────────────────────────
+
+export const AddressSchema = z.object({
+  street: z.string().min(5, { message: "Street is required." }),
+  city: z.string().min(2, { message: "City is required." }),
+  state: z.string().optional(),
+  postalCode: z.string().min(3, { message: "Postal code is required." }),
+  country: z.string().min(2, { message: "Country is required." }),
+  isDefault: z.boolean().optional().default(false),
+});
 
 export const CheckoutSchema = z.object({
   address: z.string().min(5, { message: "Address is required." }),
@@ -38,6 +53,7 @@ export const CheckoutSchema = z.object({
   postalCode: z.string().min(3, { message: "Postal code is required." }),
   country: z.string().min(2, { message: "Country is required." }),
   notes: z.string().optional(),
+  paymentMethod: z.string().default("COD"),
 });
 
 // ─── Inferred types ───────────────────────────────────────────────────────────
@@ -45,6 +61,8 @@ export const CheckoutSchema = z.object({
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ProductInput = z.infer<typeof ProductSchema>;
+export type ReviewInput = z.infer<typeof ReviewSchema>;
+export type AddressInput = z.infer<typeof AddressSchema>;
 export type CheckoutInput = z.infer<typeof CheckoutSchema>;
 
 // ─── Action form state types ──────────────────────────────────────────────────

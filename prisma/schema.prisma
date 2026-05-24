@@ -25,6 +25,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
@@ -36,8 +43,10 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  cart   Cart?
-  orders Order[]
+  cart      Cart?
+  orders    Order[]
+  addresses Address[]
+  reviews   Review[]
 
   @@index([email])
   @@map("users")
@@ -73,6 +82,7 @@ model Product {
 
   cartItems  CartItem[]
   orderItems OrderItem[]
+  reviews    Review[]
 
   @@index([slug])
   @@index([categoryId])
@@ -123,7 +133,8 @@ model Order {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  items OrderItem[]
+  items   OrderItem[]
+  payment Payment?
 
   @@index([userId])
   @@index([status])
@@ -142,4 +153,55 @@ model OrderItem {
 
   @@index([orderId])
   @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @default(5)
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+  @@map("reviews")
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  street     String
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  amount        Decimal       @db.Decimal(10, 2)
+  method        String
+  status        PaymentStatus @default(PENDING)
+  transactionId String?       @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("payments")
 }

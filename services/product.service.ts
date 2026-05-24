@@ -56,7 +56,12 @@ export async function getProducts(filters: ProductFilters = {}) {
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { category: true },
+      include: {
+        category: true,
+        reviews: {
+          select: { rating: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
@@ -64,8 +69,22 @@ export async function getProducts(filters: ProductFilters = {}) {
     prisma.product.count({ where }),
   ]);
 
+  // Calculate average rating for each product
+  const productsWithRating = products.map((product) => {
+    const ratings = product.reviews.map((r) => r.rating);
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+        : 0;
+    return {
+      ...product,
+      averageRating,
+      reviewCount: ratings.length,
+    };
+  });
+
   return {
-    products,
+    products: productsWithRating,
     total,
     pages: Math.ceil(total / limit),
     page,
@@ -73,29 +92,67 @@ export async function getProducts(filters: ProductFilters = {}) {
 }
 
 export async function getProductBySlug(slug: string) {
-  return prisma.product.findUnique({
+  const product = await prisma.product.findUnique({
     where: { slug },
-    include: { category: true },
+    include: {
+      category: true,
+      reviews: {
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
+
+  if (!product) return null;
+
+  const ratings = product.reviews.map((r) => r.rating);
+  const averageRating =
+    ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+
+  return {
+    ...product,
+    averageRating,
+    reviewCount: ratings.length,
+  };
 }
 
 export async function getProductById(id: string) {
   return prisma.product.findUnique({
     where: { id },
-    include: { category: true },
+    include: { category: true, reviews: true },
   });
 }
 
 export async function getFeaturedProducts(limit = 4) {
-  return prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: { featured: true, stock: { gt: 0 } },
-    include: { category: true },
+    include: {
+      category: true,
+      reviews: { select: { rating: true } },
+    },
     orderBy: { createdAt: "desc" },
     take: limit,
   });
+
+  return products.map((product) => {
+    const ratings = product.reviews.map((r) => r.rating);
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+        : 0;
+    return {
+      ...product,
+      averageRating,
+      reviewCount: ratings.length,
+    };
+  });
 }
 
-export async function getRelatedProducts(categoryId: string, excludeId: string, limit = 4) {
+export async function getRelatedProducts(
+  categoryId: string,
+  excludeId: string,
+  limit = 4
+) {
   return prisma.product.findMany({
     where: {
       categoryId,
