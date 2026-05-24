@@ -80,8 +80,7 @@ export async function login(
     };
   }
 
-  const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
-
+  const passwordMatch = await bcrypt.compare(password, user.hashedPassword!);
   if (!passwordMatch) {
     return {
       errors: { password: ["Incorrect password."] },
