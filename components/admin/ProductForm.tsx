@@ -93,6 +93,17 @@ export default function ProductForm({ product, categories }: ProductFormProps) {
                 />
                 {state?.errors?.stock && <p className="text-xs text-error font-bold mt-1 ml-1">{state.errors.stock[0]}</p>}
               </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] ml-1">Color Variants (comma-separated)</label>
+                <input
+                  name="colors"
+                  defaultValue={product?.colors?.join(", ")}
+                  placeholder="e.g. Oak, Walnut, Matte Black"
+                  className="w-full px-4 py-3 rounded-xl bg-surface-container border border-outline-variant/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium"
+                />
+                <p className="text-[9px] text-secondary font-medium ml-1">Enter multiple colors separated by commas</p>
+              </div>
             </div>
           </div>
         </div>

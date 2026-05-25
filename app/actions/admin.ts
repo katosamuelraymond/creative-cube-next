@@ -21,6 +21,7 @@ export async function createProductAction(
     categoryId: formData.get("categoryId"),
     featured: formData.get("featured") === "on",
     images: formData.getAll("images") as string[],
+    colors: formData.get("colors")?.toString().split(",").map(c => c.trim()).filter(Boolean) || [],
   };
 
   const validated = ProductSchema.safeParse(raw);
@@ -32,7 +33,7 @@ export async function createProductAction(
     };
   }
 
-  const { name, description, price, costPrice, stock, categoryId, images, featured } = validated.data;
+  const { name, description, price, costPrice, stock, categoryId, images, colors, featured } = validated.data;
 
   const slug = slugify(name);
   const existing = await prisma.product.findUnique({ where: { slug } });
@@ -49,6 +50,7 @@ export async function createProductAction(
         stock,
         categoryId,
         images,
+        colors,
         featured,
       },
     });
@@ -74,6 +76,7 @@ export async function updateProductAction(
     categoryId: formData.get("categoryId"),
     featured: formData.get("featured") === "on",
     images: formData.getAll("images") as string[],
+    colors: formData.get("colors")?.toString().split(",").map(c => c.trim()).filter(Boolean) || [],
   };
 
   const validated = ProductSchema.safeParse(raw);
@@ -85,7 +88,7 @@ export async function updateProductAction(
     };
   }
 
-  const { name, description, price, costPrice, stock, categoryId, images, featured } = validated.data;
+  const { name, description, price, costPrice, stock, categoryId, images, colors, featured } = validated.data;
 
   try {
     await prisma.product.update({
@@ -98,6 +101,7 @@ export async function updateProductAction(
         stock,
         categoryId,
         images,
+        colors,
         featured,
       },
     });

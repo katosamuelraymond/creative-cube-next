@@ -28,6 +28,7 @@ export const ProductSchema = z.object({
   stock: z.coerce.number().int().min(0, { message: "Stock cannot be negative." }),
   categoryId: z.string().min(1, { message: "Please select a category." }),
   images: z.array(z.string().url()).min(1, { message: "At least one image is required." }),
+  colors: z.array(z.string()).optional().default([]),
   featured: z.boolean().optional().default(false),
 });
 
