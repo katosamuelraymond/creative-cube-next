@@ -50,7 +50,9 @@ export async function getProducts(filters: ProductFilters = {}) {
           },
         }
       : {}),
-    stock: { gt: 0 },
+    // For admin we might want to see all products, but for main store we usually only show in stock.
+    // Let's make it so if we are searching or in admin (limit > 50 is a hint), we show all.
+    ...(limit <= 50 && { stock: { gt: 0 } }),
   };
 
   const [products, total] = await Promise.all([

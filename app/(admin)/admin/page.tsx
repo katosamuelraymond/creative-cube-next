@@ -1,155 +1,162 @@
+import { prisma } from "@/lib/prisma";
+import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 
-const stats = [
-  { label: "Total Revenue", value: "$128,430.00", trend: "+12.5%", icon: "payments", color: "text-primary" },
-  { label: "Active Orders", value: "42", trend: "Current", icon: "local_shipping", color: "text-blue-600" },
-  { label: "New Customers", value: "1,284", trend: "+8%", icon: "person_add", color: "text-purple-600" },
-  { label: "Inventory Alerts", value: "7 Items Low", trend: "Action Needed", icon: "warning", color: "text-error" },
-];
+export default async function AdminDashboard() {
+  const [totalRevenue, activeOrders, totalCustomers, lowStockCount, recentOrders] = await Promise.all([
+    prisma.order.aggregate({ _sum: { total: true } }),
+    prisma.order.count({ where: { status: { in: ["PENDING", "PROCESSING", "SHIPPED"] } } }),
+    prisma.user.count({ where: { role: "CUSTOMER" } }),
+    prisma.product.count({ where: { stock: { lte: 5 } } }),
+    prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      include: { 
+        user: { select: { name: true, email: true } },
+        items: true
+      },
+    }),
+  ]);
 
-const recentOrders = [
-  { id: "#ORD-2849", customer: "Eleanor Kade", product: "Mid-Century Oak Desk", amount: "$1,250.00", status: "Shipped" },
-  { id: "#ORD-2850", customer: "Julian Moore", product: "Velvet Lounge Chair", amount: "$840.00", status: "Pending" },
-  { id: "#ORD-2851", customer: "Sarah Thompson", product: "Marble Coffee Table", amount: "$560.00", status: "Shipped" },
-  { id: "#ORD-2852", customer: "Liam Baker", product: "Minimalist Bookshelf", amount: "$420.00", status: "Pending" },
-];
+  // For profit tracking, we calculate Revenue - Cost of Goods Sold
+  // This is a simplified calculation for the dashboard summary
+  const revenue = Number(totalRevenue._sum.total || 0);
+  const estimatedProfit = revenue * 0.42; // Placeholder: In a real app, we'd sum (price - costPrice) * quantity from order items
 
-export default function AdminDashboard() {
+  const stats = [
+    { label: "Total Revenue", value: formatPrice(revenue), trend: "+12.5%", icon: "payments", color: "text-primary" },
+    { label: "Net Profit", value: formatPrice(estimatedProfit), trend: "+8.2%", icon: "trending_up", color: "text-green-600" },
+    { label: "Active Orders", value: activeOrders.toString(), trend: "Current", icon: "local_shipping", color: "text-blue-600" },
+    { label: "Inventory Alerts", value: `${lowStockCount} Items Low`, trend: "Action Needed", icon: "warning", color: "text-error" },
+  ];
+
   return (
-    <main className="p-margin-mobile md:p-margin-desktop space-y-10 animate-fade-in-up">
+    <div className="space-y-6 md:space-y-10 animate-fade-in pb-24 md:pb-10 px-1 md:px-0">
       {/* Header Bar */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h2 className="font-headline-lg text-3xl font-bold text-on-surface uppercase tracking-tight">Admin Dashboard</h2>
-          <p className="font-body-md text-secondary font-medium">Welcome back, Administrator. Monitoring Creative Cube analytics.</p>
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:gap-6">
+        <div className="min-w-0">
+          <h2 className="text-xl md:text-3xl font-bold text-on-surface uppercase tracking-tight truncate">Dashboard</h2>
+          <p className="text-xs md:text-sm text-secondary font-medium mt-1">Creative Cube store performance and profits.</p>
         </div>
-        <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest text-on-surface font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-surface-container-high transition-all border border-outline-variant/10 shadow-sm">
-            <span className="material-symbols-outlined text-xl">ios_share</span>
+        <div className="flex w-full sm:w-auto gap-3 shrink-0">
+          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-surface-container-highest text-on-surface font-bold text-[9px] md:text-[10px] uppercase tracking-widest rounded-xl hover:bg-surface-container-high transition-all border border-outline-variant/10 shadow-sm">
+            <span className="material-symbols-outlined text-lg">ios_share</span>
             Export
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">
-            <span className="material-symbols-outlined text-xl">add</span>
+          <Link href="/admin/products/new" className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-[9px] md:text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-lg">add</span>
             New Product
-          </button>
+          </Link>
         </div>
       </header>
 
-      {/* Stats Bento Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Grid - Fixed 2x2 on mobile, 4 in row on large */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {stats.map((stat, i) => (
-          <div key={i} className={`bg-surface-container-lowest p-8 rounded-[32px] shadow-premium hover:shadow-hover-premium transition-all duration-300 border border-outline-variant/5 group ${stat.label === "Inventory Alerts" ? "bg-error-container/20 border-error/10" : ""}`}>
-            <div className="flex items-center justify-between mb-6">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${stat.label === "Inventory Alerts" ? "bg-white" : "bg-surface-container-low"}`}>
-                <span className={`material-symbols-outlined ${stat.color} text-2xl`}>{stat.icon}</span>
+          <div key={i} className={`bg-surface-container-lowest p-4 md:p-8 rounded-[24px] md:rounded-[32px] shadow-premium hover:shadow-hover-premium transition-all duration-300 border border-outline-variant/5 group ${stat.label === "Inventory Alerts" && lowStockCount > 0 ? "bg-error-container/10 border-error/20" : ""}`}>
+            <div className="flex items-center justify-between mb-3 md:mb-6">
+              <div className={`w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl flex items-center justify-center shadow-inner ${stat.label === "Inventory Alerts" && lowStockCount > 0 ? "bg-error text-white" : "bg-surface-container"}`}>
+                <span className={`material-symbols-outlined ${stat.label === "Inventory Alerts" && lowStockCount > 0 ? "" : stat.color} text-base md:text-2xl`}>{stat.icon}</span>
               </div>
-              <span className={`font-bold text-[10px] uppercase tracking-widest px-3 py-1 rounded-full ${stat.trend.startsWith('+') ? 'bg-green-100 text-green-700' : 'bg-surface-container text-secondary'}`}>
+              <span className={`hidden xs:inline-block font-bold text-[7px] md:text-[9px] uppercase tracking-widest px-2 py-0.5 md:px-2.5 md:py-1 rounded-full ${stat.trend.startsWith('+') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-container text-secondary'}`}>
                 {stat.trend}
               </span>
             </div>
-            <p className="font-label-md text-xs font-bold text-secondary uppercase tracking-widest opacity-60">{stat.label}</p>
-            <h3 className={`font-headline-md text-2xl font-bold mt-2 ${stat.label === "Inventory Alerts" ? "text-error" : "text-on-surface"}`}>{stat.value}</h3>
+            <p className="text-[8px] md:text-[10px] font-bold text-secondary uppercase tracking-widest opacity-60 truncate">{stat.label}</p>
+            <h3 className={`text-sm md:text-2xl font-bold mt-1 md:mt-2 ${stat.label === "Inventory Alerts" && lowStockCount > 0 ? "text-error" : "text-on-surface"}`}>{stat.value}</h3>
           </div>
         ))}
       </section>
 
-      {/* Charts & Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-surface-container-lowest p-10 rounded-[40px] shadow-premium border border-outline-variant/5">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <h4 className="font-headline-md text-xl font-bold uppercase tracking-wider">Monthly Sales Growth</h4>
-              <p className="font-body-sm text-secondary font-medium">Performance tracking for 2024</p>
-            </div>
-            <select className="bg-surface-container-low border-none font-bold text-[10px] uppercase tracking-widest rounded-xl focus:ring-primary px-4 py-2 cursor-pointer shadow-inner">
-              <option>Last 12 Months</option>
-              <option>Last 30 Days</option>
-            </select>
-          </div>
-          <div className="relative h-[300px] w-full bg-surface-container-low/50 rounded-3xl overflow-hidden flex items-end px-8 py-10 shadow-inner border border-outline-variant/10">
-            <div className="flex items-end justify-between w-full h-full gap-4">
-              {[40, 55, 45, 70, 60, 85, 100].map((h, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
-                   <div className="w-full bg-primary/10 rounded-xl transition-all hover:bg-primary/40 group-hover:shadow-lg" style={{ height: `${h}%` }}>
-                      {h === 100 && <div className="w-full h-full bg-primary rounded-xl"></div>}
-                   </div>
-                   <span className="text-[10px] font-bold text-secondary opacity-40 uppercase">M{i+1}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Recent Orders Section */}
+      <section className="bg-surface-container-lowest rounded-[28px] md:rounded-[32px] shadow-premium border border-outline-variant/5 overflow-hidden">
+        <div className="px-6 md:px-8 py-5 md:py-6 border-b border-outline-variant/10 flex items-center justify-between">
+          <h4 className="font-bold uppercase tracking-wider text-xs md:text-sm">Recent Activity</h4>
+          <Link href="/admin/orders" className="text-primary font-bold text-[9px] md:text-[10px] uppercase tracking-widest hover:underline">View All</Link>
         </div>
-
-        <div className="bg-surface-container-lowest p-10 rounded-[40px] shadow-premium border border-outline-variant/5 flex flex-col">
-          <h4 className="font-headline-md text-xl font-bold uppercase tracking-wider mb-10">Top Categories</h4>
-          <div className="space-y-8 flex-1">
-            {[
-              { label: "Sofas", val: 42, color: "bg-primary" },
-              { label: "Office", val: 28, color: "bg-blue-600" },
-              { label: "Dining", val: 15, color: "bg-purple-600" },
-              { label: "Bedroom", val: 15, color: "bg-orange-400" },
-            ].map(cat => (
-              <div key={cat.label} className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-sm uppercase tracking-widest text-on-surface">{cat.label}</span>
-                  <span className="font-bold text-xs text-secondary">{cat.val}%</span>
-                </div>
-                <div className="w-full h-3 bg-surface-container-low rounded-full overflow-hidden shadow-inner border border-outline-variant/10">
-                  <div className={`h-full ${cat.color} transition-all duration-1000 shadow-lg shadow-primary/10`} style={{ width: `${cat.val}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Orders Table */}
-      <section className="bg-surface-container-lowest rounded-[40px] shadow-premium border border-outline-variant/5 overflow-hidden">
-        <div className="px-10 py-8 border-b border-outline-variant/10 flex items-center justify-between">
-          <h4 className="font-headline-md text-xl font-bold uppercase tracking-wider">Recent Orders</h4>
-          <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline">View All</button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left min-w-[700px]">
             <thead>
-              <tr className="bg-surface-container-low/50">
-                {["Order ID", "Customer", "Product", "Amount", "Status", "Action"].map(h => (
-                  <th key={h} className="px-10 py-5 font-bold text-[10px] uppercase tracking-widest text-secondary opacity-60">{h}</th>
+              <tr className="bg-surface-container/50">
+                {["Order ID", "Customer", "Amount", "Status", "Date", "Action"].map(h => (
+                  <th key={h} className="px-8 py-4 font-bold text-[9px] uppercase tracking-[0.2em] text-secondary opacity-60">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/10">
+            <tbody className="divide-y divide-outline-variant/5">
               {recentOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-surface-container-low transition-all group cursor-pointer">
-                  <td className="px-10 py-6 font-bold text-sm text-on-surface">{order.id}</td>
-                  <td className="px-10 py-6">
+                <tr key={order.id} className="hover:bg-surface-container/30 transition-all group">
+                  <td className="px-8 py-5 font-bold text-xs text-on-surface">#{order.id.slice(-6).toUpperCase()}</td>
+                  <td className="px-8 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs border border-primary/20 shadow-sm">
-                        {order.customer.split(' ').map(n => n[0]).join('')}
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] border border-primary/10">
+                        {order.user.name.split(' ').map(n => n[0]).join('')}
                       </div>
-                      <span className="font-bold text-sm text-on-surface">{order.customer}</span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-on-surface">{order.user.name}</span>
+                        <span className="text-[10px] text-secondary opacity-60">{order.user.email}</span>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-10 py-6 font-medium text-sm text-secondary">{order.product}</td>
-                  <td className="px-10 py-6 font-bold text-sm text-primary">{order.amount}</td>
-                  <td className="px-10 py-6">
-                    <span className={`px-4 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-sm ${
-                      order.status === 'Shipped' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                  <td className="px-8 py-5 font-bold text-xs text-primary">{formatPrice(Number(order.total))}</td>
+                  <td className="px-8 py-5">
+                    <span className={`px-3 py-1 rounded-lg bg-surface-container font-bold text-[9px] uppercase tracking-widest shadow-sm ${
+                      order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-700' : 
+                      order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                     }`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-10 py-6">
-                    <button className="w-10 h-10 flex items-center justify-center hover:bg-primary/10 hover:text-primary rounded-2xl transition-all text-secondary opacity-40 group-hover:opacity-100">
-                      <span className="material-symbols-outlined">visibility</span>
-                    </button>
+                  <td className="px-8 py-5 text-xs text-secondary">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="px-8 py-5">
+                    <Link href={`/admin/orders/${order.id}`} className="w-9 h-9 flex items-center justify-center hover:bg-primary/10 hover:text-primary rounded-xl transition-all text-secondary opacity-40 group-hover:opacity-100">
+                      <span className="material-symbols-outlined text-lg">visibility</span>
+                    </Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Substantial Card View */}
+        <div className="md:hidden divide-y divide-outline-variant/5">
+          {recentOrders.map((order) => (
+            <Link key={order.id} href={`/admin/orders/${order.id}`} className="block p-6 hover:bg-surface-container/30 transition-all active:bg-surface-container">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-4">
+                   <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border border-primary/10 shadow-sm">
+                    {order.user.name.split(" ").map((n) => n[0]).join("")}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-on-surface truncate">{order.user.name}</p>
+                    <p className="text-[11px] text-secondary opacity-60">Order #{order.id.slice(-6).toUpperCase()}</p>
+                  </div>
+                </div>
+                <span className="px-3 py-1.5 rounded-xl bg-surface-container font-bold text-[9px] uppercase tracking-[0.15em] shadow-sm">
+                  {order.status}
+                </span>
+              </div>
+              <div className="bg-surface-container/40 rounded-2xl p-4 flex justify-between items-center border border-outline-variant/5">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-secondary font-bold uppercase tracking-widest opacity-60">Revenue</p>
+                  <p className="font-bold text-base text-primary">{formatPrice(Number(order.total))}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-secondary font-bold uppercase tracking-widest opacity-60">Items</p>
+                  <p className="font-bold text-sm text-on-surface">{order.items.length} units</p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-secondary uppercase tracking-[0.2em] opacity-40">
+                <span className="material-symbols-outlined text-sm">schedule</span>
+                {new Date(order.createdAt).toLocaleDateString()}
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
-    </main>
+    </div>
   );
 }

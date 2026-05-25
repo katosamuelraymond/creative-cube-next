@@ -70,8 +70,10 @@ model Product {
   name        String
   slug        String   @unique
   description String
-  price       Decimal  @db.Decimal(10, 2)
+  price       Decimal  @db.Decimal(10, 2) // Selling price
+  costPrice   Decimal  @default(0) @db.Decimal(10, 2) // Buying price
   images      String[] // Array of image URLs
+  colors      String[] // Array of color names/codes
   stock       Int      @default(0)
   featured    Boolean  @default(false)
   createdAt   DateTime @default(now())

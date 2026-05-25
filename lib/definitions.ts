@@ -23,7 +23,8 @@ export const LoginSchema = z.object({
 export const ProductSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   description: z.string().min(10, { message: "Description too short." }),
-  price: z.coerce.number().positive({ message: "Price must be positive." }),
+  price: z.coerce.number().positive({ message: "Selling price must be positive." }),
+  costPrice: z.coerce.number().positive({ message: "Buying price must be positive." }),
   stock: z.coerce.number().int().min(0, { message: "Stock cannot be negative." }),
   categoryId: z.string().min(1, { message: "Please select a category." }),
   images: z.array(z.string().url()).min(1, { message: "At least one image is required." }),
