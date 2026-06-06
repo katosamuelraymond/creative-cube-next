@@ -300,16 +300,31 @@ export default async function Home() {
   );
 }
 
-function ProductCard({ product, isFullHeight, isCompact }: { product: Product, isFullHeight?: boolean, isCompact?: boolean }) {
+function ProductCard({ 
+  product, 
+  isFullHeight, 
+  isCompact,
+  isFeatured 
+}: { 
+  product: Product, 
+  isFullHeight?: boolean, 
+  isCompact?: boolean,
+  isFeatured?: boolean
+}) {
   const categoryName = typeof product.category === 'string'
     ? product.category
     : product.category?.name;
 
   const priceString = product.price?.toString() || "0";
+  
+  const isLarge = isFullHeight || isFeatured;
 
   return (
     <div className="group animate-scale-in h-full flex flex-col relative">
-      <Link href={`/products/${product.id}`} className={`relative overflow-hidden rounded-[32px] bg-surface-container shadow-premium group-hover:shadow-hover-premium transition-all duration-500 ${isFullHeight ? 'flex-1' : isCompact ? 'aspect-square' : 'aspect-[4/5]'} ${!isFullHeight && !isCompact ? 'mb-4' : ''}`}>
+      <Link 
+        href={`/products/${product.id}`} 
+        className={`relative overflow-hidden rounded-[32px] bg-surface-container shadow-premium group-hover:shadow-hover-premium transition-all duration-500 ${isLarge ? 'flex-1' : isCompact ? 'aspect-square' : 'aspect-[4/5]'} ${!isLarge && !isCompact ? 'mb-4' : ''}`}
+      >
         <img
           alt={product.name}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -318,11 +333,11 @@ function ProductCard({ product, isFullHeight, isCompact }: { product: Product, i
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
 
         {/* Detail Overlay for tight masonry grid items */}
-        <div className={`absolute inset-0 flex flex-col justify-end p-6 transition-opacity duration-300 bg-gradient-to-t from-black/80 via-transparent to-transparent ${isFullHeight || isCompact ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 md:hidden'}`}>
+        <div className={`absolute inset-0 flex flex-col justify-end p-6 transition-opacity duration-300 bg-gradient-to-t from-black/80 via-transparent to-transparent ${isLarge || isCompact ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 md:hidden'}`}>
           <div className="text-white">
             <p className="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-80">{categoryName}</p>
-            <h3 className={`${isFullHeight ? 'text-2xl' : 'text-sm'} font-bold mb-1`}>{product.name}</h3>
-            <p className={`${isFullHeight ? 'text-xl' : 'text-sm'} font-bold text-primary-container`}>${priceString}</p>
+            <h3 className={`${isLarge ? 'text-2xl' : 'text-sm'} font-bold mb-1`}>{product.name}</h3>
+            <p className={`${isLarge ? 'text-xl' : 'text-sm'} font-bold text-primary-container`}>${priceString}</p>
           </div>
         </div>
       </Link>
@@ -332,7 +347,7 @@ function ProductCard({ product, isFullHeight, isCompact }: { product: Product, i
         <span className="material-symbols-outlined">add_shopping_cart</span>
       </button>
 
-      {!isFullHeight && !isCompact && (
+      {!isLarge && !isCompact && (
         <div className="px-2 mt-2">
           <p className="font-body-sm text-body-sm text-secondary mb-1 uppercase tracking-widest text-[10px] font-bold">
             {categoryName}
