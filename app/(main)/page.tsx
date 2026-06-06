@@ -181,16 +181,16 @@ export default async function Home() {
         </div>
 
         <div className="max-w-container-max mx-auto px-margin-desktop">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-auto md:min-h-[800px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Big Featured Item */}
-            <div className="md:col-span-7 h-full">
-              <ProductCard product={bestSellers[0]} isFullHeight />
+            <div className="md:col-span-8 lg:col-span-7">
+              <ProductCard product={bestSellers[0]} isFeatured />
             </div>
 
             {/* 4 item cluster */}
-            <div className="md:col-span-5 grid grid-cols-2 grid-rows-2 gap-4 h-full">
+            <div className="md:col-span-4 lg:col-span-5 grid grid-cols-2 gap-4 md:gap-6">
               {bestSellers.slice(1, 5).map((product) => (
-                <div key={product.id} className="h-full">
+                <div key={product.id}>
                   <ProductCard product={product} isCompact />
                 </div>
               ))}
